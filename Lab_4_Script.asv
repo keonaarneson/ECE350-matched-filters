@@ -1,0 +1,166 @@
+%Lab 4 
+
+%2-1
+t_ping = 0:0.01:0.25;
+
+figure;
+hold on;
+plot(t_ping,ping)
+title('ping(t)')
+xlabel('t (seconds)')
+ylabel('Amplitude')
+hold off;
+
+%2-3
+listen = [zeros(1,800) ping zeros(1,200)];
+
+%2-4
+t_listen = 0:0.01:(length(listen)-1)/100;
+
+figure;
+hold on;
+plot(t_listen,listen)
+title('listen(t)')
+xlabel('t ')
+ylabel('Amplitude')
+gtext('send ping')
+gtext('ping reflected off object')
+gtext('start receiving ping')
+gtext('end receiving ping')
+gtext('stop listening')
+hold off;
+
+%3-1
+h = fliplr(ping);
+
+figure;
+hold on;
+plot(t_ping,h)
+title("Matching Signal")
+xlabel("time")
+ylabel("h(t)")
+hold off;
+
+%3-2
+[conv_out, conv_out_time] = my_cont_conv(h,listen,t_ping,t_listen);
+
+%3-3
+figure;
+hold on;
+plot(conv_out_time, conv_out)
+title("Product of signal and listen")
+xlabel("time")
+ylabel("Amplitude")
+gtext('send ping')
+gtext('ping reflected off object')
+gtext('start receiving ping')
+gtext('end receiving ping')
+gtext('stop listening')
+hold off;
+
+%3-4
+index_e = find(conv_out == max(conv_out));
+index_b = index_e - length(ping);
+
+%3-5
+time_e = t_listen(index_e);
+time_b =  t_listen(index_b);
+
+%3-6
+% Velocity (m/s) * time (s) / 2 (due to signal bouncing to destination and
+% back) = distance (m)
+distance = 1500*(time_e/2);
+
+%4-1
+noise1 = 0.5*randn(1, 1026);
+noise2 = randn(1, 1026);
+noise3 = 2*randn(1, 1026);
+
+figure;
+subplot(2,3,1)
+plot(t_listen,noise1)
+title("Noise with STDV = 0.5")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+subplot(2,3,2)
+plot(t_listen,noise2)
+title("Noise with STDV = 1")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+subplot(2,3,3)
+plot(t_listen,noise3)
+title("Noise with STDV = 2")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+%4-2
+subplot(2,3,4)
+hist(noise1,11)
+title("Noise with STDV = 0.5")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([-7 7 0 275])
+
+subplot(2,3,5)
+hist(noise2,11)
+title("Noise with STDV = 1")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([-7 7 0 275])
+
+subplot(2,3,6)
+hist(noise3,11)
+title("Noise with STDV = 2")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([-7 7 0 275])
+
+%4-3
+listen1 = listen+noise1;
+listen2 = listen+noise2;
+listen3 = listen+noise3;
+
+figure;
+subplot(1,3,1)
+plot(t_listen, listen1)
+title("Listen with Noise, stdv = 0.5")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+subplot(1,3,2)
+plot(t_listen, listen2)
+title("Listen with Noise, stdv = 1")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+subplot(1,3,3)
+plot(t_listen, listen3)
+title("Listen with Noise, stdv = 2")
+xlabel("time (s)")
+ylabel("Amplitude")
+axis([0 10 -7 7])
+
+%4-4
+for I = 1:3
+    if I == 1
+        std_dev = 0.5;
+    elseif I == 2
+        std_dev = 1;
+    else 
+        std_dev = 2;
+    end
+    for J = 1:10
+        noise = randn(1,length(listen));
+        listenX = listen+std_dev*noise;
+        intermediate = conv(listenX,h);
+        index_e = find(max(intermediate) == intermediate);
+        distance(I,J) = (index_e-26)*0.01*1500/2;
+    end
+end
